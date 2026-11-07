@@ -1,0 +1,44 @@
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Angular build outputs
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Angular cache
+/.angular/cache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# Environment files (may contain secrets)
+/.env
+/.env.*
+/src/environments/environment.local.ts
+/src/environments/environment.production.local.ts
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+/coverage
+
+# Testing
+/playwright-report
+/test-results

@@ -1,0 +1,1022 @@
+<div class="app-container theme-ooredoo">
+
+  <!-- ============================================================
+       PAGE HEADER
+       ============================================================ -->
+
+  <div class="page-header-modern">
+
+    <div class="modal-header">
+
+      <div class="header-content">
+
+        <h2 class="modal-title">
+          <i class="fas fa-boxes operator-icon"></i>
+          Gestion des Attachements
+        </h2>
+
+        <div class="operator-badge">
+          Articles / Raccordements
+        </div>
+
+      </div>
+
+      <div class="header-right">
+
+        <span class="result-count">
+          <strong>{{ getResultCount() }}</strong>
+          raccordement(s)
+        </span>
+
+        <button
+          class="btn-action export-btn"
+          (click)="exportExcel()"
+          [disabled]="
+            isLoading ||
+            !hasSearched ||
+            filteredRows.length === 0
+          "
+          title="Exporter Excel"
+        >
+          <i class="fas fa-file-excel"></i>
+          Exporter
+        </button>
+
+        <button
+          class="btn-action refresh-btn"
+          (click)="refreshData()"
+          title="Rafraîchir"
+          [disabled]="isLoading"
+        >
+          <i
+            class="fas fa-sync-alt"
+            [class.fa-spin]="isLoading"
+          ></i>
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         CONTEXT
+         ========================================================== -->
+
+    <div class="context-section">
+
+      <div class="context-grid">
+
+        <div class="context-item">
+
+          <span class="context-label">
+            Sous-traitant
+          </span>
+
+          <span class="context-value">
+            {{ getSelectedSoutraitanceName() }}
+          </span>
+
+        </div>
+
+
+        <div class="context-item">
+
+          <span class="context-label">
+            Opérateur
+          </span>
+
+          <span class="context-value">
+            {{ getSelectedOperatorName() }}
+          </span>
+
+        </div>
+
+
+        <div class="context-item">
+
+          <span class="context-label">
+            Date RDV
+          </span>
+
+          <span class="context-value">
+            {{ filterDateRDV || 'Toutes' }}
+          </span>
+
+        </div>
+
+
+        <div class="context-item">
+
+          <span class="context-label">
+            Période
+          </span>
+
+          <span class="context-value">
+
+            <ng-container
+              *ngIf="
+                filterDateDebut || filterDateFin;
+                else allDates
+              "
+            >
+
+              {{ filterDateDebut || '...' }}
+
+              <span class="period-arrow">
+                →
+              </span>
+
+              {{ filterDateFin || '...' }}
+
+            </ng-container>
+
+            <ng-template #allDates>
+              Toutes
+            </ng-template>
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================
+       TABLE SECTION
+       ============================================================ -->
+
+  <div class="table-section">
+
+    <div class="table-card">
+
+
+      <!-- ========================================================
+           FILTERS
+           ======================================================== -->
+
+      <div class="filters-card">
+
+        <div class="filters-grid">
+
+
+          <!-- SOUS-TRAITANT -->
+
+          <div class="filter-field">
+
+            <label>
+              Sous-traitant
+            </label>
+
+            <select
+              [(ngModel)]="filterSoutraitanceId"
+              class="filter-control"
+            >
+
+              <option value="">
+                Tous les sous-traitants
+              </option>
+
+              <option
+                *ngFor="let s of soutraitances"
+                [value]="s.id"
+              >
+                {{ s.label }}
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- OPERATEUR -->
+
+          <div class="filter-field">
+
+            <label>
+              Opérateur
+            </label>
+
+            <select
+              [(ngModel)]="filterOperateur"
+              class="filter-control"
+            >
+
+              <option value="">
+                Tous les opérateurs
+              </option>
+
+              <option
+                *ngFor="let operateur of operateurs"
+                [value]="operateur.nomOperateur"
+              >
+                {{ operateur.nomOperateur }}
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DATE RDV -->
+
+          <div class="filter-field">
+
+            <label>
+              Date RDV
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="filterDateRDV"
+              (change)="onDateRDVChange()"
+              class="filter-control"
+            >
+
+          </div>
+
+
+          <!-- DATE DEBUT -->
+
+          <div class="filter-field">
+
+            <label>
+              Date début
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="filterDateDebut"
+              (change)="onDateRangeChange()"
+              class="filter-control"
+            >
+
+          </div>
+
+
+          <!-- DATE FIN -->
+
+          <div class="filter-field">
+
+            <label>
+              Date fin
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="filterDateFin"
+              (change)="onDateRangeChange()"
+              class="filter-control"
+            >
+
+          </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             ACTION ROW
+             ======================================================== -->
+
+        <div class="filter-actions">
+
+          <div class="filter-actions-left">
+
+            <span class="result-info">
+
+              <strong>
+                {{ filteredRows.length }}
+              </strong>
+
+              raccordements
+
+            </span>
+
+
+            <span class="page-info">
+
+              Page
+
+              <strong>
+                {{ currentPage }}
+              </strong>
+
+              /
+
+              <strong>
+                {{ totalPages() }}
+              </strong>
+
+            </span>
+
+
+            <div class="page-size-container">
+
+              <label>
+                Afficher
+              </label>
+
+              <select
+                [(ngModel)]="itemsPerPage"
+                (change)="onItemsPerPageChange()"
+                class="filter-control small-select"
+              >
+
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="25">25</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+                <option [ngValue]="500">500</option>
+                <option [ngValue]="1000">1000</option>
+                <option [ngValue]="-1">Tous</option>
+
+              </select>
+
+              <span>
+                par page
+              </span>
+
+            </div>
+
+
+            <span
+              *ngIf="filteredRows.length > 0"
+              class="range-info"
+            >
+              {{ getStartIndex() }}
+              –
+              {{ getEndIndex() }}
+            </span>
+
+          </div>
+
+
+          <div class="filter-actions-right">
+
+            <button
+              class="btn-action submit-btn"
+              (click)="applyFilters()"
+              [disabled]="isLoading"
+            >
+
+              <i class="fas fa-search"></i>
+              Appliquer
+
+            </button>
+
+
+            <button
+              class="btn-action reset-btn"
+              (click)="resetFilters()"
+            >
+
+              <i class="fas fa-undo-alt"></i>
+              Réinitialiser
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           LOADING
+           ======================================================== -->
+
+      <div
+        *ngIf="isLoading"
+        class="loading-state"
+      >
+
+        <i class="fas fa-spinner fa-spin"></i>
+
+        <span>
+          Chargement des données...
+        </span>
+
+      </div>
+
+
+      <!-- ========================================================
+           TABLE AREA
+           ======================================================== -->
+
+      <div
+        *ngIf="!isLoading"
+        class="table-area"
+      >
+
+
+        <!-- ======================================================
+             TOP HORIZONTAL SCROLL
+             ====================================================== -->
+
+        <div
+          *ngIf="
+            hasSearched &&
+            filteredRows.length > 0 &&
+            articles.length > 0
+          "
+          class="top-horizontal-scroll"
+          #topScroll
+          (scroll)="onTopScroll()"
+        >
+
+          <div
+            class="top-horizontal-scroll-content"
+            [style.width.px]="getTableMinWidth()"
+          ></div>
+
+        </div>
+
+
+        <!-- ======================================================
+             TABLE WRAPPER
+             ====================================================== -->
+
+        <div
+          class="table-wrapper"
+          #tableScroll
+          (scroll)="onTableScroll()"
+        >
+
+          <table
+            class="modern-table"
+            [style.width.px]="getTableMinWidth()"
+            [style.min-width.px]="getTableMinWidth()"
+          >
+
+            <!-- ==================================================
+                 COLUMN DEFINITIONS
+                 ================================================== -->
+
+            <colgroup>
+
+              <!-- FIXED COLUMNS -->
+
+              <col class="col-crm">
+
+              <col class="col-chef">
+
+              <col class="col-date">
+
+
+              <!-- DYNAMIC ARTICLE COLUMNS -->
+
+              <col
+                *ngFor="let article of articles"
+                class="col-article"
+              >
+
+            </colgroup>
+
+
+            <!-- ==================================================
+                 TABLE HEADER
+                 ================================================== -->
+
+            <thead>
+
+            <tr>
+
+              <!-- ==================================================
+                   CRM
+                   ================================================== -->
+
+              <th
+                class="
+                    sticky-column
+                    sticky-crm
+                    sortable-header
+                  "
+                (click)="toggleSort('crm')"
+                title="Trier par CRM"
+              >
+
+                <div class="header-cell">
+
+                  <i class="fas fa-hashtag"></i>
+
+                  <span>
+                      CRM
+                    </span>
+
+                  <i
+                    class="fas sort-icon"
+                    [ngClass]="{
+                        'fa-sort':
+                          sortField !== 'crm',
+
+                        'fa-sort-up':
+                          sortField === 'crm' &&
+                          sortDirection === 'asc',
+
+                        'fa-sort-down':
+                          sortField === 'crm' &&
+                          sortDirection === 'desc'
+                      }"
+                  ></i>
+
+                </div>
+
+              </th>
+
+
+              <!-- ==================================================
+                   CHEF EQUIPE
+                   ================================================== -->
+
+              <th
+                class="
+                    sticky-column
+                    sticky-chef
+                    sortable-header
+                  "
+                (click)="toggleSort('nomChef')"
+                title="Trier par chef d'équipe"
+              >
+
+                <div class="header-cell">
+
+                  <i class="fas fa-user-tie"></i>
+
+                  <span>
+                      Chef Équipe
+                    </span>
+
+                  <i
+                    class="fas sort-icon"
+                    [ngClass]="{
+                        'fa-sort':
+                          sortField !== 'nomChef',
+
+                        'fa-sort-up':
+                          sortField === 'nomChef' &&
+                          sortDirection === 'asc',
+
+                        'fa-sort-down':
+                          sortField === 'nomChef' &&
+                          sortDirection === 'desc'
+                      }"
+                  ></i>
+
+                </div>
+
+              </th>
+
+
+              <!-- ==================================================
+                   DATE RDV
+                   ================================================== -->
+
+              <th
+                class="
+                    sticky-column
+                    sticky-date
+                    sortable-header
+                  "
+                (click)="toggleSort('dateRDV')"
+                title="Trier par date RDV"
+              >
+
+                <div class="header-cell">
+
+                  <i class="fas fa-calendar"></i>
+
+                  <span>
+                      Date RDV
+                    </span>
+
+                  <i
+                    class="fas sort-icon"
+                    [ngClass]="{
+                        'fa-sort':
+                          sortField !== 'dateRDV',
+
+                        'fa-sort-up':
+                          sortField === 'dateRDV' &&
+                          sortDirection === 'asc',
+
+                        'fa-sort-down':
+                          sortField === 'dateRDV' &&
+                          sortDirection === 'desc'
+                      }"
+                  ></i>
+
+                </div>
+
+              </th>
+
+
+              <!-- ==================================================
+                   DYNAMIC ARTICLES
+                   ================================================== -->
+
+              <th
+                *ngFor="let article of articles"
+                class="article-column"
+              >
+
+                <div class="article-header">
+
+                  <div class="article-header-title">
+
+                    <i class="fas fa-box"></i>
+
+                    <span>
+                        {{ article.article }}
+                      </span>
+
+                  </div>
+
+                  <div class="article-total">
+
+                      <span>
+                        Total
+                      </span>
+
+                    <strong>
+                      {{
+                        getArticleTotal(
+                          article.articleId
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              </th>
+
+            </tr>
+
+            </thead>
+
+
+            <!-- ==================================================
+                 TABLE BODY
+                 ================================================== -->
+
+            <tbody>
+
+
+            <!-- ==================================================
+                 DATA ROWS
+                 ================================================== -->
+
+            <tr
+              *ngFor="let row of paginatedRows()"
+              class="table-row"
+            >
+
+              <!-- CRM -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-crm
+                    label-cell
+                  "
+              >
+
+                  <span class="label-badge">
+                    {{ row.crm || '—' }}
+                  </span>
+
+              </td>
+
+
+              <!-- CHEF -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-chef
+                  "
+              >
+
+                  <span class="client-name">
+                    {{ row.nomChef || '—' }}
+                  </span>
+
+              </td>
+
+
+              <!-- DATE RDV -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-date
+                  "
+              >
+
+                  <span class="date-value">
+                    {{ row.dateRDV || '—' }}
+                  </span>
+
+              </td>
+
+
+              <!-- ARTICLES -->
+
+              <td
+                *ngFor="let article of articles"
+                class="article-quantity-cell"
+              >
+
+                  <span
+                    class="quantity-badge"
+                    [class.quantity-zero]="
+                      getArticleQuantity(
+                        row,
+                        article.articleId
+                      ) === 0
+                    "
+                  >
+
+                    {{
+                      getArticleQuantity(
+                        row,
+                        article.articleId
+                      )
+                    }}
+
+                  </span>
+
+              </td>
+
+            </tr>
+
+
+            <!-- ==================================================
+                 TOTAL ROW
+                 ================================================== -->
+
+            <tr
+              *ngIf="
+                  hasSearched &&
+                  filteredRows.length > 0
+                "
+              class="attachment-total-row"
+            >
+
+              <!-- CRM -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-crm
+                    total-fixed-cell
+                  "
+              >
+
+                  <span class="total-label">
+
+                    <i class="fas fa-calculator"></i>
+
+                    TOTAL
+
+                  </span>
+
+              </td>
+
+
+              <!-- CHEF -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-chef
+                    total-fixed-cell
+                  "
+              ></td>
+
+
+              <!-- DATE -->
+
+              <td
+                class="
+                    sticky-column
+                    sticky-date
+                    total-fixed-cell
+                  "
+              >
+
+                  <span class="total-count">
+                    {{ filteredRows.length }}
+                    raccordement(s)
+                  </span>
+
+              </td>
+
+
+              <!-- ARTICLE TOTALS -->
+
+              <td
+                *ngFor="let article of articles"
+                class="article-total-cell"
+              >
+
+                <strong>
+                  {{
+                    getArticleTotal(
+                      article.articleId
+                    )
+                  }}
+                </strong>
+
+              </td>
+
+            </tr>
+
+
+            <!-- ==================================================
+                 EMPTY RESULT
+                 ================================================== -->
+
+            <tr
+              *ngIf="
+                  hasSearched &&
+                  filteredRows.length === 0
+                "
+            >
+
+              <td
+                [attr.colspan]="3 + articles.length"
+                class="empty-table-cell"
+              >
+
+                <div class="empty-state">
+
+                  <i class="fas fa-inbox"></i>
+
+                  <h3>
+                    Aucun attachement trouvé
+                  </h3>
+
+                  <p>
+                    Aucun raccordement ne correspond
+                    aux critères sélectionnés.
+                  </p>
+
+                  <button
+                    class="btn-action reset-btn"
+                    (click)="resetFilters()"
+                  >
+
+                    <i class="fas fa-undo-alt"></i>
+
+                    Réinitialiser les filtres
+
+                  </button>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+
+            <!-- ==================================================
+                 INITIAL STATE
+                 ================================================== -->
+
+            <tr
+              *ngIf="!hasSearched"
+            >
+
+              <td
+                [attr.colspan]="3 + articles.length"
+                class="empty-table-cell"
+              >
+
+                <div class="empty-state">
+
+                  <i class="fas fa-filter"></i>
+
+                  <h3>
+                    Sélectionnez vos filtres
+                  </h3>
+
+                  <p>
+                    Sélectionnez un sous-traitant,
+                    un opérateur ou une période,
+                    puis cliquez sur
+                    <strong>Appliquer</strong>.
+                  </p>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <!-- ======================================================
+             PAGINATION
+             ====================================================== -->
+
+        <div
+          class="pagination"
+          *ngIf="filteredRows.length > 0"
+        >
+
+          <button
+            class="pagination-btn"
+            (click)="firstPage()"
+            [disabled]="currentPage === 1"
+          >
+
+            <i class="fas fa-angle-double-left"></i>
+
+            Première
+
+          </button>
+
+
+          <button
+            class="pagination-btn"
+            (click)="prevPage()"
+            [disabled]="currentPage === 1"
+          >
+
+            <i class="fas fa-angle-left"></i>
+
+            Précédent
+
+          </button>
+
+
+          <div class="pagination-pages">
+
+            <button
+              *ngFor="let p of getPageNumbers()"
+              class="pagination-page"
+              [class.active]="p === currentPage"
+              [disabled]="p === -1"
+              (click)="goToPage(p)"
+            >
+
+              <ng-container *ngIf="p !== -1">
+                {{ p }}
+              </ng-container>
+
+              <ng-container *ngIf="p === -1">
+                …
+              </ng-container>
+
+            </button>
+
+          </div>
+
+
+          <button
+            class="pagination-btn"
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages()"
+          >
+
+            Suivant
+
+            <i class="fas fa-angle-right"></i>
+
+          </button>
+
+
+          <button
+            class="pagination-btn"
+            (click)="lastPage()"
+            [disabled]="currentPage === totalPages()"
+          >
+
+            Dernière
+
+            <i class="fas fa-angle-double-right"></i>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

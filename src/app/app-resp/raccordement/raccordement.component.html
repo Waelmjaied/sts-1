@@ -1,0 +1,525 @@
+
+    <!-- ===== FILTERS SECTION ===== -->
+
+
+    <!-- ============================================================
+     RACCORDEMENTS MANAGEMENT - ENHANCED UI
+     Modern Ooredoo Design System (aligned with modal styles)
+     Angular 18 Compatible
+     ============================================================ -->
+    <div class="app-container theme-ooredoo">
+
+      <!-- ===== MODERN PAGE HEADER (like modal header but for page) ===== -->
+      <div class="page-header-modern" style="margin-bottom:24px;">
+        <div class="modal-header" style="border-radius:16px 16px 0 0; background:var(--secondary-color); padding:24px 32px;">
+          <div class="header-content">
+            <h2 class="modal-title">
+              <i class="fas fa-plug operator-icon"></i> Gestion des Raccordements
+            </h2>
+            <div class="operator-badge">ooredoo</div>
+          </div>
+          <div class="header-right" style="display:flex; gap:12px; align-items:center;">
+                <span class="result-count" style="font-weight:500; color:var(--text-color);">
+                    <strong>{{ filteredRaccordements.length }}</strong> raccordement(s)
+                </span>
+            <button class="btn-action submit-btn" (click)="refreshData()" title="Rafraîchir" style="min-width:auto; padding:8px 14px;">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        <!-- Context / Info line (optional) -->
+        <div class="context-section" style="border-radius:0 0 16px 16px; padding:12px 32px; background:var(--primary-light);">
+          <div class="context-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px,1fr));">
+            <div class="context-item">
+              <span class="context-label">Projet</span>
+              <span class="context-value" style="font-size:0.9rem; padding:4px 12px;">
+                        {{ filterProjet || 'Tous' }}
+                    </span>
+            </div>
+            <div class="context-item">
+              <span class="context-label">Zone</span>
+              <span class="context-value" style="font-size:0.9rem; padding:4px 12px;">
+                        {{ filterZone || 'Toutes' }}
+                    </span>
+            </div>
+            <div class="context-item">
+              <span class="context-label">État</span>
+              <span class="context-value" style="font-size:0.9rem; padding:4px 12px;">
+                        {{ filterEtat || 'Tous' }}
+                    </span>
+            </div>
+            <div class="context-item">
+              <span class="context-label">Chef Équipe</span>
+              <span class="context-value" style="font-size:0.9rem; padding:4px 12px;">
+                        {{ filterChef || 'Tous' }}
+                    </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== FILTERS + TABLE CARD ===== -->
+      <div class="table-section" style="padding:0;">
+        <div class="table-card">
+
+
+
+
+          <div class="filters-card" style="padding:16px 20px; background:var(--primary-light); border-radius:12px;">
+
+            <!-- ============================================================
+                 ROW 1 – SELECT DROPDOWNS (6 per row)
+            ============================================================ -->
+            <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:16px 12px; margin-bottom:16px;">
+
+              <!-- 1. Projet -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Projet</label>
+                <select class="page-size-select" [(ngModel)]="filterProjet" (change)="onProjetChange()" style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+                  <option value="">Projet</option>
+                  <option *ngFor="let projet of projets" [value]="projet.nomProjet">{{ projet.nomProjet }}</option>
+                </select>
+              </div>
+
+              <!-- 2. Zone -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Zone</label>
+                <select class="page-size-select" [(ngModel)]="filterZone" (change)="applyFilters()" [disabled]="!filterProjet" style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+                  <option value="">Zone</option>
+                  <option *ngFor="let zone of filteredZones" [value]="zone.nomZone">{{ zone.nomZone }}</option>
+                </select>
+              </div>
+
+              <!-- 3. État -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">État</label>
+                <select class="page-size-select" [(ngModel)]="filterEtat" (change)="applyFilters()" style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+                  <option value="">État</option>
+                  <option value="En attente">⏳ En attente</option>
+                  <option value="En cours">🔄 En cours</option>
+                  <option value="Terminé">✅ Terminé</option>
+                  <option value="Annulé">❌ Annulé</option>
+                  <option value="Non affecté">⚪ Non affecté</option>
+                  <option value="Non fibré">🔌 Non fibré</option>
+                  <option value="Non disponible">🚫 Non disponible</option>
+                  <option value="RDV raté">📅 RDV raté</option>
+                  <option value="Hors zone">📍 Hors zone</option>
+                </select>
+              </div>
+
+              <!-- 4. Chef Équipe -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Chef Équipe</label>
+                <select class="page-size-select" [(ngModel)]="filterChef" (change)="applyFilters()" style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+                  <option value="">Chef Équipe</option>
+                  <option *ngFor="let chef of chefsEquipe" [value]="chef">{{ chef }}</option>
+                </select>
+              </div>
+
+              <!-- 5. Débit -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Débit</label>
+                <select class="page-size-select" [(ngModel)]="filterDebit" (change)="applyFilters()" style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+                  <option value="">Débit</option>
+                  <option *ngFor="let debit of debits" [value]="debit">{{ debit }}</option>
+                </select>
+              </div>
+
+              <!-- 6. Date RDV (with label) -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Date RDV</label>
+                <input type="date"
+                       [(ngModel)]="filterDateRDV"
+                       (change)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+            </div>
+
+            <!-- ============================================================
+                 ROW 2 – TEXT + DATE INPUTS (6 per row)
+                 Labels added for all, especially dates
+            ============================================================ -->
+            <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:16px 12px; margin-bottom:16px;">
+
+              <!-- 1. Réf / Cas CRM (with search icon and label) -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Cas CRM</label>
+                  <i class="fa fa-search search-icon" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                <input
+                  [(ngModel)]="filterTitre"
+                  placeholder="Rechercher..."
+                  class="search-input"
+                  type="text"
+                  (input)="applyFilters()"
+                  style="width:100%; padding:10px 14px 10px 40px; border-radius:8px; border:1px solid #e2e8f0; background:white;"
+                />
+              </div>
+
+              <!-- 2. Client -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Nom Client</label>
+                <input type="text"
+                       [(ngModel)]="filterClient"
+                       placeholder="Nom ou prénom"
+                       (input)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+              <!-- 3. Téléphone -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Téléphone</label>
+                <input type="text"
+                       [(ngModel)]="filterTelephone"
+                       placeholder="Ex: 22xxxxxx"
+                       (input)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+              <!-- 4. MSISDN -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">MSISDN</label>
+                <input type="text"
+                       [(ngModel)]="filterFixe"
+                       placeholder="Ex: 36xxxxxx"
+                       (input)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+              <!-- 5. Date début (with label) -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Date début</label>
+                <input type="date"
+                       [(ngModel)]="filterDateStart"
+                       (change)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+              <!-- 6. Date fin (with label) – this will wrap to the next line because grid has 6 columns -->
+              <div class="filter-field">
+                <label style="display:block; font-size:13px; font-weight:500; color:#475569; margin-bottom:4px;">Date fin</label>
+                <input type="date"
+                       [(ngModel)]="filterDateEnd"
+                       (change)="applyFilters()"
+                       class="page-size-select"
+                       style="padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:100%;">
+              </div>
+
+            </div>
+
+            <!-- ============================================================
+                 BOTTOM ROW – ALL IN ONE LINE
+                 (Pagination, per‑page, Trier par, Ordre, actions)
+            ============================================================ -->
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:4px; flex-wrap:nowrap;">
+
+              <!-- LEFT: count, pagination, refresh, per-page, Trier par, Ordre -->
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:nowrap; overflow-x:auto;">
+
+            <span style="font-weight:500; color:#334155; white-space:nowrap;">
+                <strong>{{ filteredRaccordements.length }}</strong> raccordements
+            </span>
+
+                <span style="color:#64748b; font-size:14px; white-space:nowrap;">
+                Page <strong>{{ currentPage }}</strong> / <strong>{{ totalPages() }}</strong>
+            </span>
+
+                <button class="btn-action" style="background:var(--primary-color); padding:6px 12px; min-width:auto; box-shadow:0 4px 12px rgba(227,6,19,0.3);" (click)="refreshData()">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+
+                <!-- Per-page selector -->
+                <div class="per-page-selector" style="display:flex; align-items:center; gap:6px;">
+                  <label for="per-page-top" style="font-size:14px; color:#475569; white-space:nowrap;">Afficher</label>
+                  <select id="per-page-top"
+                          [(ngModel)]="itemsPerPage"
+                          (change)="onItemsPerPageChange()"
+                          class="page-size-select" style="padding:6px 10px; width:auto; border-radius:6px; border:1px solid #e2e8f0;">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                    <option [value]="100">100</option>
+                  </select>
+                  <span style="font-size:14px; color:#475569; white-space:nowrap;">par page</span>
+                </div>
+
+                <span style="font-size:14px; color:#64748b; white-space:nowrap;">
+                {{ getStartIndex() }} – {{ getEndIndex() }}
+            </span>
+
+                <!-- Trier par & Ordre (unchanged, where they belong) -->
+                <select class="page-size-select" [(ngModel)]="sortField" (change)="applySorting()" style="padding:6px 12px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:auto; min-width:120px; flex-shrink:1;">
+                  <option value="">Trier par</option>
+                  <option value="projet">Projet</option>
+                  <option value="zone">Zone</option>
+                  <option value="titre">Référence</option>
+                  <option value="nomClient">Client</option>
+                  <option value="dateRDV">Date RDV</option>
+                  <option value="etatRaccordement">État</option>
+                </select>
+
+                <select class="page-size-select" [(ngModel)]="sortDirection" (change)="applySorting()" style="padding:6px 12px; border-radius:8px; border:1px solid #e2e8f0; background:white; width:auto; min-width:110px; flex-shrink:1;">
+                  <option value="asc">⬆ Croissant</option>
+                  <option value="desc">⬇ Décroissant</option>
+                </select>
+
+              </div>
+
+              <!-- RIGHT: action buttons -->
+              <div style="display:flex; gap:8px; flex-wrap:nowrap;">
+                <button class="btn-action submit-btn" (click)="applyFilters()" style="min-width:auto; padding:8px 18px;">
+                  <i class="fas fa-check"></i> Appliquer
+                </button>
+                <button class="btn-action" style="background:var(--accent-color); box-shadow:0 4px 12px rgba(108,117,125,0.3);" (click)="resetFilters()">
+                  <i class="fas fa-undo-alt"></i> Réinitialiser
+                </button>
+                <button class="btn-action" style="background:linear-gradient(135deg,#28a745,#1e7e34); box-shadow:0 4px 12px rgba(40,167,69,0.3);" (click)="exportData()">
+                  <i class="fas fa-file-export"></i> Exporter
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+
+
+          <!-- ===== TABLE ===== -->
+          <div class="table-wrapper">
+
+            <!-- Table itself -->
+            <table class="modern-table">
+              <thead>
+              <tr>
+                <th><i class="fas fa-circle"></i> État</th>
+                <th><i class="fas fa-hashtag"></i> Réf / Cas CRM</th>
+                <th><i class="fas fa-user"></i> Client</th>
+                <th><i class="fas fa-phone"></i> Contact</th>
+                <th><i class="fas fa-sim-card"></i> MSISDN</th>
+                <th><i class="fas fa-calendar-check"></i> RDV</th>
+                <th><i class="fas fa-map-pin"></i> Zone</th>
+                <th><i class="fas fa-home"></i> Adresse</th>
+                <th><i class="fas fa-tachometer-alt"></i> Débit</th>
+                <th><i class="fas fa-user-tie"></i> Chef Équipe</th>
+                <th class="text-center"><i class="fas fa-cog"></i> Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let r of paginatedRaccordements()" class="table-row">
+                <!-- État -->
+                <td>
+                                <span class="status-badge"
+                                      [ngClass]="{
+                                        'status-en-attente': r.etatRaccordement === 'En attente',
+                                        'status-en-cours': r.etatRaccordement === 'En cours',
+                                        'status-termine': r.etatRaccordement === 'Terminé',
+                                        'status-annule': r.etatRaccordement === 'Annulé',
+                                        'status-non-affecte': r.etatRaccordement === 'Non affecté',
+                                        'status-non-fibre': r.etatRaccordement === 'Non fibré',
+                                        'status-non-disponible': r.etatRaccordement === 'Non disponible',
+                                        'status-rdv-rate': r.etatRaccordement === 'RDV raté',
+                                        'status-hors-zone': r.etatRaccordement === 'Hors zone',
+                                        'status-inconnu': !r.etatRaccordement
+                                      }"
+                                      style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
+                                    <span class="status-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor;"></span>
+                                  {{ r.etatRaccordement || 'Non défini' }}
+                                </span>
+                </td>
+                <!-- Réf -->
+                <td class="label-cell"><span class="label-badge">{{ r.titre }}</span></td>
+                <!-- Client -->
+                <td>
+                  <div class="client-info">
+                    <span class="client-name">{{ r.nomClient }} {{ r.prenomClient }}</span>
+                  </div>
+                </td>
+                <!-- Contact -->
+                <td><a href="tel:{{ r.numTelephone }}" style="color:var(--primary-color); text-decoration:none; font-weight:500;"><i class="fas fa-phone-alt"></i> {{ r.numTelephone }}</a></td>
+                <!-- MSISDN -->
+                <td><span style="font-weight:500;">{{ r.numFixe || '—' }}</span></td>
+                <!-- RDV -->
+                <td>
+                  <div style="display:flex; flex-direction:column;">
+                    <span style="font-weight:500;">{{ r.dateRDV }}</span>
+                    <span style="font-size:12px; color:#64748b;">{{ r.heureRDV }}</span>
+                  </div>
+                </td>
+                <!-- Zone -->
+                <td><span style="background:var(--primary-light); padding:4px 12px; border-radius:12px; font-size:13px;">{{ r.zone }}</span></td>
+                <!-- Adresse -->
+                <td class="description-cell" [title]="r.adresseClient">
+                  {{ formatAddress(r.adresseClient) }}
+                </td>
+                <!-- Débit -->
+                <td><span style="font-weight:600; color:var(--primary-color);">{{ r.debit || '—' }}</span></td>
+                <!-- Chef Équipe -->
+                <td><span style="font-weight:500;">{{ r.chef_equipe || '—' }}</span></td>
+                <!-- Actions -->
+                <td class="actions-cell">
+                  <button class="btn-action btn-view"
+                          (click)="viewRaccordement(r.clientId)"
+                          title="voir les détails du raccordement">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+
+              <!-- EMPTY STATE -->
+              <tr *ngIf="filteredRaccordements.length === 0">
+                <td colspan="11" style="text-align:center; padding:60px 20px;">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+                    <i class="fas fa-inbox" style="font-size:48px; color:#94a3b8;"></i>
+                    <h3 style="color:#334155; margin:0;">Aucun raccordement trouvé</h3>
+                    <p style="color:#64748b; max-width:400px;">Essayez de modifier vos critères de recherche ou de réinitialiser les filtres.</p>
+                    <button class="btn-action" style="background:var(--accent-color); box-shadow:0 4px 12px rgba(108,117,125,0.3);" (click)="resetFilters()">
+                      <i class="fas fa-undo-alt"></i> Réinitialiser les filtres
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <!-- Bottom Pagination -->
+            <div class="pagination" *ngIf="filteredRaccordements.length > 0">
+              <button class="pagination-btn" (click)="firstPage()" [disabled]="currentPage === 1">
+                <i class="fas fa-angle-double-left"></i> Première
+              </button>
+              <button class="pagination-btn" (click)="prevPage()" [disabled]="currentPage === 1">
+                <i class="fas fa-angle-left"></i> Précédent
+              </button>
+              <div class="pagination-pages">
+                <button *ngFor="let p of getPageNumbers()"
+                        class="pagination-page"
+                        [class.active]="p === currentPage"
+                        (click)="goToPage(p)">
+                  {{ p }}
+                </button>
+              </div>
+              <button class="pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages()">
+                Suivant <i class="fas fa-angle-right"></i>
+              </button>
+              <button class="pagination-btn" (click)="lastPage()" [disabled]="currentPage === totalPages()">
+                Dernière <i class="fas fa-angle-double-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DETAIL MODAL (using modal-overlay from CSS) ===== -->
+      <div *ngIf="showTacheModel" class="modal-overlay" (click)="closeDetailModal()">
+        <div class="modal-container" [class]="'theme-ooredoo'" (click)="$event.stopPropagation()">
+          <app-detail-raccordement
+            [zone]="selectedZone"
+            [projet]="selectedProjet"
+            [operateur]="selectedOperator"
+            [clientId]="selectedClientId"
+            (close)="closeDetailModal()"
+            (refresh)="refreshData()">
+          </app-detail-raccordement>
+        </div>
+      </div>
+
+      <!-- ===== EXPORT PREVIEW MODAL (styled with modal classes) ===== -->
+      <div *ngIf="showPreviewModal && previewProjet" class="modal-overlay" (click)="showPreviewModal = false">
+        <div class="modal-container preview-modal-modern" [class]="'theme-ooredoo'" (click)="$event.stopPropagation()" style="max-width:1400px;">
+
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <div class="header-content">
+              <h3 class="modal-title" style="font-size:1.5rem;">
+                <i class="fa fa-eye"></i> Preview Export
+              </h3>
+              <div class="operator-badge" style="font-size:0.8rem;">{{ previewData.length }} abonnés</div>
+            </div>
+            <!-- Actions -->
+
+            <button class="btn-submit" (click)="confirmExport(previewProjet)"
+                    [disabled]="isLoadingPreview || previewData.length === 0">
+              <i class="fa fa-file-excel"></i> Export Excel
+            </button>
+            <button class="btn-cancel" (click)="showPreviewModal = false">
+              <i class="fas fa-times"></i>
+              Fermer</button>
+          </div>
+
+          <!-- Info -->
+          <div class="context-section" style="padding:12px 32px; background:var(--primary-light);">
+            <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+                    <span class="context-value" style="padding:4px 16px; border-left-color:var(--primary-color);">
+                        <i class="fas fa-folder"></i> Projet: {{ previewProjet.nomProjet }}
+                    </span>
+              <div class="filter-summary" style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <span *ngFor="let f of appliedFilters" style="background:white; padding:4px 12px; border-radius:20px; border:1px solid var(--border-color); font-size:13px;">
+                            <strong>{{ f.label }}:</strong> {{ f.value }}
+                        </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoadingPreview" style="text-align:center; padding:40px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:32px; color:var(--primary-color);"></i>
+            <p style="margin-top:12px; color:#64748b;">Chargement des données...</p>
+          </div>
+
+          <!-- Preview Table -->
+          <div class="table-wrapper" *ngIf="!isLoadingPreview" style="padding:24px;">
+            <table class="modern-table" style="font-size:14px;">
+              <thead>
+              <tr>
+                <th>Cas CRM</th>
+                <th>ZONE</th>
+                <th>RESIDENCE</th>
+                <th>ABONNES</th>
+                <th>S/N ONT</th>
+                <th>Numéro</th>
+                <th>Équipe</th>
+                <th>Date RDV</th>
+                <th>Chef équipe</th>
+                <th>Techniciens</th>
+                <th>SN Box</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let row of previewData" class="table-row">
+                <td>{{ row.label }}</td>
+                <td>{{ row.zoneLabel }}</td>
+                <td class="description-cell">{{ row.adresse }}</td>
+                <td>{{ row.nomClient }}</td>
+                <td>{{ row.snont }}</td>
+                <td>{{ row.msisdn }}</td>
+                <td>{{ row.equipe }}</td>
+                <td>{{ row.dateRDV }}</td>
+                <td>{{ row.chefEquipe }}</td>
+                <td>{{ row.techniciens }}</td>
+                <td>{{ row.snBox }}</td>
+              </tr>
+              <tr *ngIf="previewData.length === 0">
+                <td colspan="11" style="text-align:center; padding:40px; color:#94a3b8;">Aucune donnée à exporter</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+
+        </div>
+      </div>
+
+    </div>
+
+
+
+
+
+
